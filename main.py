@@ -1,6 +1,7 @@
 import sys
 from blackjack import jogar_blackjack
-from truco import jogar_truco  # <-- NOVA IMPORTAÇÃO
+from truco import jogar_truco
+from uno import jogar_uno  # <-- NOVA IMPORTAÇÃO
 
 def exibir_menu():
     saldo_jogador = 500
@@ -12,8 +13,8 @@ def exibir_menu():
         print(f" Seu Saldo Atual: ${saldo_jogador}")
         print("-"*35)
         print("1. Jogar Blackjack (21)")
-        print("2. Jogar Truco")  # <-- ATUALIZADO
-        print("3. Jogar Uno (Em desenvolvimento)")
+        print("2. Jogar Truco")
+        print("3. Jogar Uno")  # <-- ATUALIZADO
         print("4. Recarregar Fichas (+$500)")
         print("5. Sair do Programa")
         print("="*35)
@@ -23,10 +24,9 @@ def exibir_menu():
         if opcao == '1':
             saldo_jogador = jogar_blackjack(saldo_jogador)
         elif opcao == '2':
-            jogar_truco()  # <-- CHAMA O TRUCO AQUI
+            jogar_truco()
         elif opcao == '3':
-            print("\n[Aviso] O Uno estará disponível em breve!")
-            input("Pressione Enter para continuar...")
+            jogar_uno()  # <-- CHAMA O UNO AQUI
         elif opcao == '4':
             saldo_jogador += 500
             print(f"\n$500 fichas adicionadas! Novo saldo: ${saldo_jogador}")
