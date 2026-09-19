@@ -2,15 +2,30 @@ import random
 from utils import criar_baralho
 
 def preparar_baralho_truco():
-    # O Truco tradicional usa o baralho "limpo" (sem 8, 9 e 10)
     baralho_completo = criar_baralho()
     baralho_truco = [carta for carta in baralho_completo if carta['valor'] not in ['8', '9', '10']]
-    # Re-embaralha após limpar
     random.shuffle(baralho_truco)
     return baralho_truco
 
-def exibir_cartas_truco(jogador, mao):
-    print(f"\nSua mão ({jogador}):")
+def obter_forca_carta(carta, vira):
+    # Ordem de força padrão do Truco (do menor para o maior)
+    ordem_padrao = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3']
+    ordem_naipes = ['♦', '♠', '♥', '♣'] # Ouro, Espadas, Copas, Paus
+    
+    # Determina qual valor é a manilha baseada no Vira
+    idx_vira = ordem_padrao.index(vira['valor'])
+    idx_manilha = (idx_vira + 1) % len(ordem_padrao)
+    valor_manilha = ordem_padrao[idx_manilha]
+    
+    # Se for manilha, ganha um peso extra muito alto + bônus do naipe
+    if carta['valor'] == valor_manilha:
+        peso_naipe = ordem_naipes.index(carta['naipe'])
+        return 100 + peso_naipe
+    
+    # Se for carta comum, retorna o índice da ordem padrão
+    return ordem_padrao.index(carta['valor'])
+
+def exibir_cartas_truco(mao):
     for i, carta in enumerate(mao):
         print(f"[{i + 1}] {carta['valor']}{carta['naipe']}", end="  ")
     print()
@@ -23,40 +38,76 @@ def jogar_truco():
     tentos_jogador = 0
     tentos_robo = 0
     
-    # O jogo termina quando alguém chega a 12 tentos
     while tentos_jogador < 12 and tentos_robo < 12:
-        print(f"\nPlacar Atual -> Você: {tentos_jogador} tentos | Robô: {tentos_robo} tentos")
+        print(f"\nPlacar Geral -> Você: {tentos_jogador} | Robô: {tentos_robo}")
         print("-" * 40)
         
         baralho = preparar_baralho_truco()
-        
-        # Distribui 3 cartas para cada
         mao_jogador = [baralho.pop(), baralho.pop(), baralho.pop()]
         mao_robo = [baralho.pop(), baralho.pop(), baralho.pop()]
         
-        # Define o Vira
         vira = baralho.pop()
-        print(f"🃏 CARTA VIRA NA MESA: {vira['valor']}{vira['naipe']}")
+        print(f"🃏 CARTA VIRA NA MESA: {vira['valor']}{vira['naipe']}\n")
         
-        exibir_cartas_truco("Jogador", mao_jogador)
+        quedas_jogador = 0
+        quedas_robo = 0
         
-        # Simulação temporária de uma rodada simples (passo inicial)
-        print("\n[Mecanismo de queda em desenvolvimento]")
-        print("Para este teste, quem tiver a maior primeira carta ganha 2 tentos!")
-        
-        input("\nPressione Enter para simular a rodada...")
-        
-        # Simulação rápida apenas para testar a estrutura do placar loop
-        if random.choice([True, False]):
-            print("\n🎉 Você ganhou a mão!")
+        # Loop para as 3 quedas da rodada (Melhor de 3)
+        for rodada in range(1, 4):
+            print(f"--- {rodada}ª Queda ---")
+            print("Suas cartas disponíveis:")
+            exibir_cartas_truco(mao_jogador)
+            
+            # Escolha do Jogador com validação de entrada
+            while True:
+                try:
+                    escolha = int(input(f"Escolha uma carta para jogar (1-{len(mao_jogador)}): ")) - 1
+                    if 0 <= escolha < len(mao_jogador):
+                        carta_jogador = mao_jogador.pop(escolha)
+                        break
+                    else:
+                        print("Escolha uma carta válida da lista.")
+                except ValueError:
+                    print("Por favor, digite um número.")
+            
+            # Escolha simples do Robô (ele sempre joga a primeira carta da mão dele)
+            carta_robo = mao_robo.pop(0)
+            
+            print(f"\nVocê jogou: {carta_jogador['valor']}{carta_jogador['naipe']}")
+            print(f"O Robô jogou: {carta_robo['valor']}{carta_robo['naipe']}")
+            
+            # Calcula e compara as forças
+            forca_jog = obter_forca_carta(carta_jogador, vira)
+            forca_rob = obter_forca_carta(carta_robo, vira)
+            
+            if forca_jog > forca_rob:
+                print("👉 Você ganhou esta queda!\n")
+                quedas_jogador += 1
+            elif forca_rob > forca_jog:
+                print("👉 O Robô ganhou esta queda!\n")
+                quedas_robo += 1
+            else:
+                print("👉 Empachou (empate)!\n")
+                quedas_jogador += 1
+                quedas_robo += 1
+                
+            # Verifica se alguém já ganhou a melhor de 3 imediatamente
+            if quedas_jogador >= 2 or quedas_robo >= 2:
+                break
+                
+        # Atribuição dos tentos (pontos) após as quedas
+        if quedas_jogador > quedas_robo:
+            print("🎉 Você ganhou a mão e levou 2 tentos!")
             tentos_jogador += 2
-        else:
-            print("\n🤖 O Robô ganhou a mão!")
+        elif quedas_robo > quedas_jogador:
+            print("🤖 O Robô ganhou a mão e levou 2 tentos!")
             tentos_robo += 2
+        else:
+            print("🤝 Empate geral na mão! Ninguém pontua.")
             
         if tentos_jogador >= 12:
-            print("\n🏆 PARABÉNS! Você venceu a partida de Truco!")
+            print("\n🏆 PARABÉNS! Você atingiu 12 tentos e venceu a partida de Truco!")
         elif tentos_robo >= 12:
-            print("\n🃏 Fim de jogo! O Robô venceu a partida.")
+            print("\n🃏 Fim de jogo! O Robô atingiu 12 tentos e venceu.")
             
     input("\nPressione Enter para voltar ao menu principal...")
