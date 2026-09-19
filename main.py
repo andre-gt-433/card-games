@@ -1,8 +1,8 @@
 import sys
 from blackjack import jogar_blackjack
+from truco import jogar_truco  # <-- NOVA IMPORTAÇÃO
 
 def exibir_menu():
-    # O jogador começa o Hub com 500 fichas
     saldo_jogador = 500
     
     while True:
@@ -12,7 +12,7 @@ def exibir_menu():
         print(f" Seu Saldo Atual: ${saldo_jogador}")
         print("-"*35)
         print("1. Jogar Blackjack (21)")
-        print("2. Jogar Truco (Em desenvolvimento)")
+        print("2. Jogar Truco")  # <-- ATUALIZADO
         print("3. Jogar Uno (Em desenvolvimento)")
         print("4. Recarregar Fichas (+$500)")
         print("5. Sair do Programa")
@@ -21,11 +21,9 @@ def exibir_menu():
         opcao = input("Escolha uma opção (1-5): ").strip()
         
         if opcao == '1':
-            # Executa o jogo e salva o saldo atualizado que retornou dele
             saldo_jogador = jogar_blackjack(saldo_jogador)
         elif opcao == '2':
-            print("\n[Aviso] O Truco estará disponível em breve!")
-            input("Pressione Enter para continuar...")
+            jogar_truco()  # <-- CHAMA O TRUCO AQUI
         elif opcao == '3':
             print("\n[Aviso] O Uno estará disponível em breve!")
             input("Pressione Enter para continuar...")
