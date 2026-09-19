@@ -8,21 +8,17 @@ def preparar_baralho_truco():
     return baralho_truco
 
 def obter_forca_carta(carta, vira):
-    # Ordem de força padrão do Truco (do menor para o maior)
     ordem_padrao = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3']
-    ordem_naipes = ['♦', '♠', '♥', '♣'] # Ouro, Espadas, Copas, Paus
+    ordem_naipes = ['♦', '♠', '♥', '♣']
     
-    # Determina qual valor é a manilha baseada no Vira
     idx_vira = ordem_padrao.index(vira['valor'])
     idx_manilha = (idx_vira + 1) % len(ordem_padrao)
     valor_manilha = ordem_padrao[idx_manilha]
     
-    # Se for manilha, ganha um peso extra muito alto + bônus do naipe
     if carta['valor'] == valor_manilha:
         peso_naipe = ordem_naipes.index(carta['naipe'])
         return 100 + peso_naipe
     
-    # Se for carta comum, retorna o índice da ordem padrão
     return ordem_padrao.index(carta['valor'])
 
 def exibir_cartas_truco(mao):
@@ -51,32 +47,128 @@ def jogar_truco():
         
         quedas_jogador = 0
         quedas_robo = 0
+        valor_rodada = 1  
+        quem_pode_aumentar = "ambos"
+        fugiu = False
+        quem_fugiu = ""
         
-        # Loop para as 3 quedas da rodada (Melhor de 3)
+        # Loop para as 3 quedas da rodada
         for rodada in range(1, 4):
-            print(f"--- {rodada}ª Queda ---")
+            if fugiu:
+                break
+                
+            print(f"--- {rodada}ª Queda (Valendo {valor_rodada} tentos) ---")
+            
+            # Chance de o Robô pedir Truco/Aumento antes da rodada começar
+            if quem_pode_aumentar in ["ambos", "robo"] and valor_rodada < 12 and random.random() < 0.15:
+                proximo_valor = 3 if valor_rodada == 1 else valor_rodada + 3
+                nome_grito = "TRUCO" if proximo_valor == 3 else str(proximo_valor)
+                print(f"\n🤖 O Robô gritou: \"{nome_grito}!\"")
+                
+                # Loop de resposta interativa (Aceitar, Fugir ou Retrucar)
+                while True:
+                    texto_opcao_6 = ""
+                    valor_retruco = 6 if proximo_valor == 3 else proximo_valor + 3
+                    if valor_retruco <= 12:
+                        texto_opcao_6 = f" ou [R] pedir {valor_retruco}"
+                        
+                    resposta = input(f"O Robô quer {proximo_valor}! [A]ceitar, [F]ugir{texto_opcao_6}? ").strip().upper()
+                    
+                    if resposta == 'A':
+                        valor_rodada = proximo_valor
+                        quem_pode_aumentar = "jogador"
+                        print(f"🤠 Você aceitou! A rodada agora vale {valor_rodada} tentos.\n")
+                        break
+                    elif resposta == 'F':
+                        print("🏳️ Você aceitou a derrota nesta mão e fugiu.")
+                        fugiu = True
+                        quem_fugiu = "jogador"
+                        break
+                    elif resposta == 'R' and texto_opcao_6 != "":
+                        print(f"\n🤠 Você contra-atacou e gritou: \"{valor_retruco}!\"")
+                        # Decisão do robô para o seu contra-ataque (80% aceita, 20% foge)
+                        if random.random() < 0.8:
+                            valor_rodada = valor_retruco
+                            quem_pode_aumentar = "robo"
+                            print(f"🤖 O Robô aceitou o {valor_rodada}! O jogo segue valendo mais.\n")
+                            break
+                        else:
+                            print("🤖 O Robô correu do seu aumento!")
+                            fugiu = True
+                            quem_fugiu = "robo"
+                            break
+                    else:
+                        print("Opção inválida! Escolha uma das letras indicadas.")
+                
+                if fugiu:
+                    break
+
             print("Suas cartas disponíveis:")
             exibir_cartas_truco(mao_jogador)
             
-            # Escolha do Jogador com validação de entrada
+            # Menu de Ação do Jogador para a sua jogada normal
             while True:
-                try:
-                    escolha = int(input(f"Escolha uma carta para jogar (1-{len(mao_jogador)}): ")) - 1
-                    if 0 <= escolha < len(mao_jogador):
-                        carta_jogador = mao_jogador.pop(escolha)
+                texto_truco = ""
+                if quem_pode_aumentar in ["ambos", "jogador"] and valor_rodada < 12:
+                    proximo_valor = 3 if valor_rodada == 1 else valor_rodada + 3
+                    nome_grito = "TRUCO" if proximo_valor == 3 else str(proximo_valor)
+                    texto_truco = f" ou [T] pedir {nome_grito}"
+                    
+                escolha_acao = input(f"Escolha o número da carta{texto_truco}: ").strip().upper()
+                
+                if escolha_acao == 'T' and texto_truco != "":
+                    proximo_valor = 3 if valor_rodada == 1 else valor_rodada + 3
+                    nome_grito = "TRUCO" if proximo_valor == 3 else str(proximo_valor)
+                    print(f"\n🤠 Você gritou: \"{nome_grito}!\"")
+                    
+                    # Decisão do robô (75% aceita, 15% corre, 10% pede o próximo aumento se puder)
+                    decisao_robo = random.random()
+                    
+                    if decisao_robo < 0.75:
+                        valor_rodada = proximo_valor
+                        quem_pode_aumentar = "robo"
+                        print(f"🤖 O Robô disse: \"Caiu!\" A rodada agora vale {valor_rodada} tentos.\n")
+                        continue
+                    elif decisao_robo < 0.90 or proximo_valor >= 12:
+                        print("🤖 O Robô correu da mão!")
+                        fugiu = True
+                        quem_fugiu = "robo"
                         break
                     else:
-                        print("Escolha uma carta válida da lista.")
+                        # Robô retruca pedindo 6, 9 ou 12
+                        valor_retruco = 6 if proximo_valor == 3 else proximo_valor + 3
+                        print(f"🤖 O Robô retrucou e gritou: \"{valor_retruco}!\"")
+                        resp_jog = input(f"Você aceita ir para {valor_retruco}? [A]ceitar ou [F]ugir: ").strip().upper()
+                        if resp_jog == 'A':
+                            valor_rodada = valor_retruco
+                            quem_pode_aumentar = "jogador"
+                            print(f"🤠 Você aceitou o desafio! Valendo {valor_rodada} tentos.\n")
+                            continue
+                        else:
+                            print("🏳️ Você correu do retruco do robô.")
+                            fugiu = True
+                            quem_fugiu = "jogador"
+                            break
+                
+                try:
+                    num_carta = int(escolha_acao) - 1
+                    if 0 <= num_carta < len(mao_jogador):
+                        carta_jogador = mao_jogador.pop(num_carta)
+                        break
+                    else:
+                        print("Escolha um número válido de carta.")
                 except ValueError:
-                    print("Por favor, digite um número.")
+                    print("Comando inválido! Digite o número da carta.")
             
-            # Escolha simples do Robô (ele sempre joga a primeira carta da mão dele)
+            if fugiu:
+                break
+                
+            # Escolha do Robô
             carta_robo = mao_robo.pop(0)
             
             print(f"\nVocê jogou: {carta_jogador['valor']}{carta_jogador['naipe']}")
             print(f"O Robô jogou: {carta_robo['valor']}{carta_robo['naipe']}")
             
-            # Calcula e compara as forças
             forca_jog = obter_forca_carta(carta_jogador, vira)
             forca_rob = obter_forca_carta(carta_robo, vira)
             
@@ -91,19 +183,26 @@ def jogar_truco():
                 quedas_jogador += 1
                 quedas_robo += 1
                 
-            # Verifica se alguém já ganhou a melhor de 3 imediatamente
             if quedas_jogador >= 2 or quedas_robo >= 2:
                 break
                 
-        # Atribuição dos tentos (pontos) após as quedas
-        if quedas_jogador > quedas_robo:
-            print("🎉 Você ganhou a mão e levou 2 tentos!")
-            tentos_jogador += 2
-        elif quedas_robo > quedas_jogador:
-            print("🤖 O Robô ganhou a mão e levou 2 tentos!")
-            tentos_robo += 2
+        # Contabilização de pontos pós-mão
+        if fugiu:
+            if quem_fugiu == "robo":
+                print(f"🎉 O Robô fugiu. Você ganhou {valor_rodada} tento(s)!")
+                tentos_jogador += valor_rodada
+            else:
+                print(f"🤖 Você fugiu. O Robô ganhou {valor_rodada} tento(s)!")
+                tentos_robo += valor_rodada
         else:
-            print("🤝 Empate geral na mão! Ninguém pontua.")
+            if quedas_jogador > quedas_robo:
+                print(f"🎉 Você ganhou a mão e levou {valor_rodada} tento(s)!")
+                tentos_jogador += valor_rodada
+            elif quedas_robo > quedas_jogador:
+                print(f"🤖 O Robô ganhou a mão e levou {valor_rodada} tento(s)!")
+                tentos_robo += valor_rodada
+            else:
+                print("🤝 Empate geral na mão! Ninguém pontua.")
             
         if tentos_jogador >= 12:
             print("\n🏆 PARABÉNS! Você atingiu 12 tentos e venceu a partida de Truco!")
