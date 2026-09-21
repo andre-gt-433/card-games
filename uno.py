@@ -8,8 +8,7 @@ def criar_baralho_uno():
     for cor in cores:
         for valor in valores:
             baralho.append({'cor': cor, 'valor': valor})
-            # No Uno real existem duas de cada (exceto o 0), mas uma de cada simplifica e funciona muito bem no terminal
-    
+            
     random.shuffle(baralho)
     return baralho
 
@@ -34,7 +33,7 @@ def jogar_uno():
         topo_descarte = baralho.pop()
         if topo_descarte['valor'] not in ['Bloqueio', 'Inverte', '+2']:
             break
-        baralho.insert(0, topo_descarte) # Devolve se for especial e tenta de novo
+        baralho.insert(0, topo_descarte)
         
     turno = "jogador"
     
@@ -49,13 +48,11 @@ def jogar_uno():
             print("\nSua mão atual:")
             exibir_mao_uno(mao_jogador)
             
-            # Filtra quais cartas você PODE jogar na rodada
             cartas_validas = []
             for i, carta in enumerate(mao_jogador):
                 if carta['cor'] == topo_descarte['cor'] or carta['valor'] == topo_descarte['valor']:
                     cartas_validas.append(i)
             
-            # Se não tiver nenhuma carta válida, é obrigado a comprar
             if not cartas_validas:
                 print("\n[Aviso] Você não tem cartas válidas para jogar!")
                 input("Pressione Enter para comprar uma carta...")
@@ -63,7 +60,6 @@ def jogar_uno():
                 mao_jogador.append(nova_carta)
                 print(f"Você comprou: {nova_carta['cor']} {nova_carta['valor']}")
                 
-                # Checa se a carta comprada pode ser jogada na hora
                 if nova_carta['cor'] == topo_descarte['cor'] or nova_carta['valor'] == topo_descarte['valor']:
                     opcao_jogar = input("Você pode jogar essa carta que comprou! Quer jogar? [S/N]: ").strip().upper()
                     if opcao_jogar == 'S':
@@ -72,7 +68,6 @@ def jogar_uno():
                 turno = "robo"
                 continue
                 
-            # Loop de escolha de jogada do jogador
             while True:
                 try:
                     escolha = input("Escolha o número da carta para jogar (ou digite 'C' para comprar mesmo assim): ").strip().upper()
@@ -87,12 +82,10 @@ def jogar_uno():
                     if 0 <= num_carta < len(mao_jogador):
                         carta_escolhida = mao_jogador[num_carta]
                         
-                        # Validação de correspondência de Cor ou Valor
                         if carta_escolhida['cor'] == topo_descarte['cor'] or carta_escolhida['valor'] == topo_descarte['valor']:
                             topo_descarte = mao_jogador.pop(num_carta)
                             print(f"\nVocê jogou: {topo_descarte['cor']} {topo_descarte['valor']}")
                             
-                            # Efeito das cartas especiais aplicadas ao robô
                             if topo_descarte['valor'] in ['Bloqueio', 'Inverte']:
                                 print("🚫 Você travou o turno do robô! Joga novamente.")
                                 turno = "jogador"
@@ -115,18 +108,15 @@ def jogar_uno():
                 print("\n🗣️ VOCÊ GRITOU: \"UNO!!!\"")
                 
         else:
-            # TURNO DO ROBÔ (Inteligência Artificial Simples)
+            # TURNO DO ROBÔ (Alinhamento corrigido)
             print("\n🤖 Turno do Robô...")
             input("Pressione Enter para ver a jogada do robô...")
             
             jogou = False
-           # ... [Dentro de uno.py, na seção do Turno do Robô] ...
-for i, carta in enumerate(mao_robo):
-    if carta['cor'] == topo_descarte['cor'] or carta['valor'] == topo_descarte['valor']:
-        topo_descarte = mao_robo.pop(i)
-        # CORREÇÃO AQUI: Agora exibe Cor e Valor da carta jogada pelo robô
-        print(f"🤖 O Robô jogou: {topo_descarte['cor']} {topo_descarte['valor']}")
-
+            for i, carta in enumerate(mao_robo):
+                if carta['cor'] == topo_descarte['cor'] or carta['valor'] == topo_descarte['valor']:
+                    topo_descarte = mao_robo.pop(i)
+                    print(f"🤖 O Robô jogou: {topo_descarte['cor']} {topo_descarte['valor']}")
                     
                     if topo_descarte['valor'] in ['Bloqueio', 'Inverte']:
                         print("🚫 O Robô te travou! Ele joga novamente.")
@@ -149,7 +139,6 @@ for i, carta in enumerate(mao_robo):
             if len(mao_robo) == 1:
                 print("\n🚨 O Robô gritou: \"UNO!!!\"")
 
-    # Fim de Jogo
     if len(mao_jogador) == 0:
         print("\n🏆 PARABÉNS! Você descartou todas as cartas e venceu o UNO!")
     else:
