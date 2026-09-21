@@ -120,10 +120,13 @@ def jogar_uno():
             input("Pressione Enter para ver a jogada do robô...")
             
             jogou = False
-            for i, carta in enumerate(mao_robo):
-                if carta['cor'] == topo_descarte['cor'] or carta['valor'] == topo_descarte['valor']:
-                    topo_descarte = mao_robo.pop(i)
-                    print(f"🤖 O Robô jogou: {topo_descarte['cor']} {topo_descarte['valor']}")
+           # ... [Dentro de uno.py, na seção do Turno do Robô] ...
+for i, carta in enumerate(mao_robo):
+    if carta['cor'] == topo_descarte['cor'] or carta['valor'] == topo_descarte['valor']:
+        topo_descarte = mao_robo.pop(i)
+        # CORREÇÃO AQUI: Agora exibe Cor e Valor da carta jogada pelo robô
+        print(f"🤖 O Robô jogou: {topo_descarte['cor']} {topo_descarte['valor']}")
+
                     
                     if topo_descarte['valor'] in ['Bloqueio', 'Inverte']:
                         print("🚫 O Robô te travou! Ele joga novamente.")
